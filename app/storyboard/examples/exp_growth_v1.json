@@ -1,0 +1,155 @@
+{
+  "version": "mw_storyboard_v1",
+  "video_id": "exp_growth_v1",
+  "lang": "zh-CN",
+  "theme": "math_dark",
+  "metadata": {
+    "title": "指数增长：为什么世界会突然爆发",
+    "subject": "math_story",
+    "target_audience": "general",
+    "aspect_ratio": "16:9"
+  },
+  "global_style": {
+    "color_preset": "dark_math",
+    "font_preset": "cn_default",
+    "animation_preset": "calm_explainer"
+  },
+  "scenes": [
+    {
+      "scene_id": "scene_01",
+      "scene_type": "title_card",
+      "layout_mode": "summary_stack",
+      "header": {"text": "指数增长"},
+      "nodes": [
+        {
+          "key": "title_1",
+          "type": "title_card",
+          "role": "primary",
+          "params": {
+            "title": "指数增长：为什么世界会突然爆发",
+            "subtitle": "从线性到翻倍的直观对比"
+          }
+        }
+      ],
+      "timing": {"hold_after": 0.6}
+    },
+    {
+      "scene_id": "scene_02",
+      "scene_type": "content",
+      "layout_mode": "two_col",
+      "header": {"text": "一：两种增长方式"},
+      "nodes": [
+        {
+          "key": "linear_panel",
+          "type": "group",
+          "role": "primary",
+          "layout_hint": "vertical",
+          "children": [
+            {
+              "key": "linear_title",
+              "type": "text_label",
+              "role": "caption",
+              "params": {"text": "线性增长", "style": "subtitle", "size": 22}
+            },
+            {
+              "key": "linear_seq",
+              "type": "number_sequence",
+              "role": "secondary",
+              "params": {
+                "header_text": "一：两种增长方式",
+                "values": [1, 2, 3, 4, 5, 6],
+                "show_arrows": false,
+                "note": "每天固定增加 1"
+              }
+            }
+          ]
+        },
+        {
+          "key": "expo_panel",
+          "type": "group",
+          "role": "primary",
+          "layout_hint": "vertical",
+          "children": [
+            {
+              "key": "expo_title",
+              "type": "text_label",
+              "role": "caption",
+              "params": {"text": "指数增长", "style": "subtitle", "size": 22}
+            },
+            {
+              "key": "expo_seq",
+              "type": "number_sequence",
+              "role": "secondary",
+              "params": {
+                "header_text": "一：两种增长方式",
+                "values": [1, 2, 4, 8, 16, 32],
+                "show_arrows": false,
+                "note": "每轮都按倍数增长"
+              }
+            }
+          ]
+        }
+      ],
+      "timing": {"hold_after": 1.0}
+    },
+    {
+      "scene_id": "scene_03",
+      "scene_type": "content",
+      "layout_mode": "plot_with_side_annotation",
+      "header": {"text": "二：把翻倍画成曲线"},
+      "nodes": [
+        {
+          "key": "exp_curve",
+          "type": "axes_curve",
+          "role": "primary",
+          "params": {
+            "header_text": "二：把翻倍画成曲线",
+            "x_range": [0, 6, 1],
+            "y_range": [0, 40, 10],
+            "plot_kind": "expression",
+            "expression": "2**x",
+            "x_label_text": "时间",
+            "y_label_text": "数量",
+            "point_x_values": [0, 1, 2, 3, 4, 5],
+            "formula_tex": "y = 2^x"
+          }
+        },
+        {
+          "key": "exp_note",
+          "type": "text_label",
+          "role": "remark",
+          "params": {
+            "text": "相同时间间隔按同样倍数增长，曲线会快速上扬。",
+            "style": "subtitle",
+            "size": 20
+          }
+        }
+      ],
+      "timing": {"hold_after": 0.8}
+    },
+    {
+      "scene_id": "scene_04",
+      "scene_type": "summary",
+      "layout_mode": "summary_stack",
+      "header": {"text": "结论"},
+      "nodes": [
+        {
+          "key": "summary_1",
+          "type": "summary_block",
+          "role": "primary",
+          "params": {
+            "summary_lines": [
+              "线性增长：固定增量，变化平缓",
+              "指数增长：固定倍率，增长爆发",
+              "理解倍数变化，是理解现实系统波动的关键"
+            ],
+            "highlight_last": true,
+            "footer_text": "下一步：为什么 e 会自然出现？",
+            "footer_as_subtitle": true,
+            "wait_time": 1.8
+          }
+        }
+      ]
+    }
+  ]
+}

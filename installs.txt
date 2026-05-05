@@ -1,0 +1,15 @@
+sudo apt update
+
+sudo apt install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    libcairo2-dev \
+    libpango1.0-dev \
+    ffmpeg \
+    texlive \
+    texlive-latex-extra \
+    texlive-fonts-extra \
+    texlive-latex-recommended \
+    dvisvgm

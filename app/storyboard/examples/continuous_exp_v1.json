@@ -1,0 +1,112 @@
+{
+  "version": "mw_storyboard_v1",
+  "video_id": "continuous_exp_v1",
+  "lang": "zh-CN",
+  "theme": "math_dark",
+  "metadata": {
+    "title": "连续复利到 e 的出现",
+    "subject": "math_story",
+    "target_audience": "general",
+    "aspect_ratio": "16:9"
+  },
+  "scenes": [
+    {
+      "scene_id": "scene_01",
+      "scene_type": "content",
+      "layout_mode": "stack_with_footer",
+      "header": {"text": "离散复利"},
+      "nodes": [
+        {
+          "key": "seq_discrete",
+          "type": "number_sequence",
+          "role": "primary",
+          "params": {
+            "header_text": "离散复利",
+            "values": [100, 110, 121, 133.1],
+            "show_arrows": true,
+            "remark": "每期增长 10%，金额按期累乘。"
+          }
+        }
+      ]
+    },
+    {
+      "scene_id": "scene_02",
+      "scene_type": "content",
+      "layout_mode": "stack_with_footer",
+      "header": {"text": "切分越来越细"},
+      "nodes": [
+        {
+          "key": "formula_chain",
+          "type": "group",
+          "role": "primary",
+          "layout_hint": "vertical",
+          "children": [
+            {
+              "key": "step1",
+              "type": "text_label",
+              "role": "caption",
+              "params": {"text": "N(t+Δt) ≈ N(t)(1+rΔt)", "style": "formula_text", "size": 24}
+            },
+            {
+              "key": "step2",
+              "type": "text_label",
+              "role": "secondary",
+              "params": {"text": "N(t) ≈ N0(1+rΔt)^(t/Δt)", "style": "formula_text", "size": 24}
+            },
+            {
+              "key": "step3",
+              "type": "text_label",
+              "role": "remark",
+              "params": {"text": "Δt → 0", "style": "highlight_formula_text", "size": 24}
+            },
+            {
+              "key": "step4",
+              "type": "text_label",
+              "role": "overlay",
+              "params": {"text": "N(t)=N0 e^{rt}", "style": "final_formula_text", "size": 28}
+            }
+          ]
+        }
+      ],
+      "timing": {"hold_after": 1.0}
+    },
+    {
+      "scene_id": "scene_03",
+      "scene_type": "summary",
+      "layout_mode": "summary_stack",
+      "header": {"text": "连续增长曲线"},
+      "nodes": [
+        {
+          "key": "curve_cont",
+          "type": "axes_curve",
+          "role": "primary",
+          "params": {
+            "header_text": "连续增长曲线",
+            "x_range": [0, 5, 1],
+            "y_range": [0, 8, 1],
+            "plot_kind": "expression",
+            "expression": "exp(0.4*x)",
+            "x_label_text": "t",
+            "y_label_text": "N(t)",
+            "formula_tex": "N(t)=N_0 e^{rt}",
+            "remark": "连续复利是离散复利极限下的自然结果。"
+          }
+        },
+        {
+          "key": "summary_end",
+          "type": "summary_block",
+          "role": "remark",
+          "params": {
+            "summary_lines": [
+              "离散复利：按期累乘",
+              "连续复利：切分趋于无穷细",
+              "极限表达自然引出 e"
+            ],
+            "highlight_last": true,
+            "wait_time": 1.5
+          }
+        }
+      ]
+    }
+  ]
+}
