@@ -1,17 +1,21 @@
-# Mindawaker
+# Mindawaker Studio
 
-AI 视频生成系统 - 基于 FastAPI + React 的现代化解决方案
+端到端 AI 视频生成系统 — 三个子项目协作完成从文本到视频的全链路
 
-## ✨ 功能特性
+## 项目结构
 
-- 🤖 **AI 驱动**: 支持 DeepSeek、OpenAI、Flux 等多种 AI 模型
-- 🎬 **视频生成**: 文案 → 音频 → 图像 → 视频 一站式合成
-- 🛑 **随时撤回**: 支持取消正在进行的生成任务
-- 📊 **实时进度**: WebSocket 实时推送生成进度
-- 💾 **任务持久化**: SQLite 存储，服务重启不丢失进度
-- 🎨 **现代化 UI**: React + Tailwind CSS + shadcn/ui
-- 📝 **统一日志**: 结构化日志，支持文件轮转
-- 🛡️ **异常处理**: 全局异常捕获，友好的错误信息
+| 子项目 | 说明 | 核心技术 |
+|--------|------|---------|
+| `app/` + `mindawaker-web/` | **Mindawaker** 主应用 | FastAPI + Next.js + LangChain + FFmpeg |
+| `media_service/` | **多粒度窗口检索** | Qwen2.5-VL-7B + OpenCV + 两阶段级联检索 |
+| `3d-t2i/` | **3D 引导多视角生成** | ComfyUI + Zero123++ + Poisson 融合 |
+
+## ✨ 核心能力
+
+- **叙事一致性**: LLM 三阶段解析（角色→场景→镜头），结构化 prompt 注入
+- **语义级视频检索**: 多粒度时间窗口（2s/5s/10s）索引，粗排语义 F1 → 精排 6 维打分
+- **3D 一致性**: 深度引导多视角图像生成 + Poisson 混合
+- **全链路合成**: 文本 → TTS 音频 → 背景检索 → 3D 角色 → FFmpeg 多轨合成
 
 ## 🚀 快速开始
 
