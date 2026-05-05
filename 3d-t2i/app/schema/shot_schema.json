@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Shot JSON Schema",
+  "description": "MindAwaker 3D-Guided T2I 镜头描述标准格式 v0.1",
+  "type": "object",
+  "required": ["template", "camera", "objects"],
+  "properties": {
+    "template": {
+      "type": "string",
+      "description": "场景模板类型",
+      "enum": ["indoor_room", "street", "bridge_river"]
+    },
+    "camera": {
+      "type": "object",
+      "required": ["view"],
+      "properties": {
+        "view": {
+          "type": "string",
+          "description": "视角类型",
+          "enum": ["front", "side", "top", "three_quarter", "low_angle", "high_angle"]
+        },
+        "shot": {
+          "type": "string",
+          "description": "镜头景别",
+          "enum": ["extreme_closeup", "closeup", "medium", "full", "wide", "establishing"]
+        },
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          }
+        },
+        "target": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          }
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "description": "场景中的物体列表",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "物体唯一标识"
+          },
+          "type": {
+            "type": "string",
+            "description": "物体类型",
+            "enum": ["child", "adult", "table", "chair", "flowerpot", "book", "lamp", "building", "tree", "car", "bridge", "river"]
+          },
+          "position": {
+            "type": "string",
+            "description": "相对位置描述",
+            "enum": ["left", "center", "right", "front", "back", "top", "bottom"]
+          },
+          "coordinates": {
+            "type": "object",
+            "description": "精确3D坐标（可选）",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "z": { "type": "number" }
+            }
+          },
+          "scale": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "default": 1 },
+              "y": { "type": "number", "default": 1 },
+              "z": { "type": "number", "default": 1 }
+            }
+          },
+          "rotation": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "default": 0 },
+              "y": { "type": "number", "default": 0 },
+              "z": { "type": "number", "default": 0 }
+            }
+          },
+          "relation": {
+            "type": "string",
+            "description": "与其他物体的关系",
+            "pattern": "^(on_top_of|beside|behind|in_front_of|inside):[a-zA-Z0-9_]+$"
+          }
+        }
+      }
+    },
+    "lighting": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["day", "night", "sunset", "indoor_warm", "indoor_cool"]
+        },
+        "direction": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          }
+        }
+      }
+    },
+    "style_prompt": {
+      "type": "string",
+      "description": "生成图像的风格提示词"
+    }
+  }
+}

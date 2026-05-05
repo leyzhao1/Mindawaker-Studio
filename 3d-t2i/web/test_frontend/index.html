@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindAwaker 测试前端</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            max-width: 1700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { margin: 0 0 8px; font-size: 24px; }
+        .subtitle { color: #94a3b8; margin-bottom: 16px; }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #fff;
+            background: #2563eb;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn.secondary { background: #475569; }
+        .btn.success { background: #16a34a; }
+        .btn.accent { background: #9333ea; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+        .no-frame-card {
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+        label { display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px; }
+        textarea, input[type="number"], input[type="text"] {
+            width: 100%;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #020617;
+            color: #e2e8f0;
+            padding: 10px;
+            font-size: 14px;
+        }
+        textarea { min-height: 110px; resize: vertical; }
+        .step-title { font-weight: 600; margin-bottom: 10px; }
+        .result {
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 240px;
+            overflow: auto;
+        }
+        .result.small { max-height: 120px; }
+        .status {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+        }
+        .preview-wrap {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #020617;
+        }
+        .preview-wrap img {
+            width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid #1f2937;
+            background: #000;
+        }
+        .preview-plain {
+            margin-top: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
+        }
+        .preview-plain img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            display: block;
+        }
+        .hidden-renderer {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
+            left: -9999px;
+            top: -9999px;
+        }
+        .preview-meta {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+            word-break: break-all;
+        }
+        .preview-title {
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+        .doc-editor { margin-top: 10px; }
+        .doc-editor textarea {
+            width: 100%;
+            min-height: 220px;
+            resize: vertical;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #020617;
+            color: #e2e8f0;
+            padding: 10px;
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        .doc-toolbar {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .doc-path {
+            font-size: 11px;
+            color: #94a3b8;
+            word-break: break-all;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .toggle-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .toggle-row label { margin-bottom: 0; cursor: pointer; }
+        .toggle-row input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; }
+        .method-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #1e293b;
+            color: #cbd5e1;
+            margin-left: 6px;
+        }
+        .method-badge.ip { background: #166534; color: #86efac; }
+        .method-badge.regional { background: #581c87; color: #e9d5ff; }
+
+        .step-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .step-tab {
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #cbd5e1;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .step-tab:hover:not(:disabled) {
+            border-color: #60a5fa;
+            color: #e2e8f0;
+        }
+        .step-tab.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+            font-weight: 600;
+        }
+        .step-tab:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .step-panel {
+            display: none;
+            margin-bottom: 14px;
+        }
+        .step-panel.active {
+            display: block;
+        }
+        .step-panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 14px;
+            align-items: start;
+        }
+        .step-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>MindAwaker 全链路测试前端</h1>
+    <div class="subtitle">parse → scene/build → project → prompt/regional → workflow/build → depth/upload → generate</div>
+
+    <div class="status" id="status">Ready</div>
+
+    <div class="toolbar">
+        <button class="btn success" id="run-to-workflow">Run 1-5 Steps</button>
+        <button class="btn accent" id="run-all">Run All (1-7)</button>
+        <button class="btn secondary" id="open-depth-renderer">Open Depth Renderer</button>
+        <button class="btn secondary" id="reset-state">Reset State</button>
+        <div class="toggle-row">
+            <input type="checkbox" id="spatial-mode" checked>
+            <label for="spatial-mode">Spatial Masks (3D→2D投影 + 区域控制)</label>
+        </div>
+    </div>
+
+    <div class="card">
+        <label for="text-input">输入描述文本</label>
+        <textarea id="text-input">室内，一个小孩站在桌边，桌上有花盆，侧面视角</textarea>
+    </div>
+
+    <div class="step-tabs" id="step-tabs">
+        <button class="step-tab" data-step-index="0" data-step-key="parse" type="button">Step 1 Parse</button>
+        <button class="step-tab" data-step-index="1" data-step-key="scene" type="button">Step 2 Scene</button>
+        <button class="step-tab" data-step-index="2" data-step-key="project" type="button">Step 2.5 Project</button>
+        <button class="step-tab" data-step-index="3" data-step-key="prompt" type="button">Step 3 Prompt</button>
+        <button class="step-tab" data-step-index="4" data-step-key="workflow" type="button">Step 4 Workflow</button>
+        <button class="step-tab" data-step-index="5" data-step-key="depth" type="button">Step 5 Depth</button>
+        <button class="step-tab" data-step-index="6" data-step-key="generate" type="button">Step 6 Generate</button>
+    </div>
+
+    <section class="step-panel" data-step-panel="parse">
+        <div class="card">
+            <div class="step-title">Step 1 - /api/parse</div>
+            <button class="btn" id="btn-parse">Run Parse</button>
+            <div class="result" id="result-parse">{}</div>
+            <div class="doc-editor">
+                <label for="doc-parse">Step 1 Document (shot)</label>
+                <textarea id="doc-parse">{}</textarea>
+                <div class="doc-toolbar">
+                    <button class="btn secondary" id="save-doc-parse" disabled>Save Document</button>
+                    <div class="doc-path" id="doc-path-parse">saved_to: -</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="step-panel" data-step-panel="scene">
+        <div class="card">
+            <div class="step-title">Step 2 - /api/scene/build</div>
+            <button class="btn" id="btn-scene" disabled>Build Scene</button>
+            <div class="result small" id="result-scene">{}</div>
+            <div class="doc-editor">
+                <label for="doc-scene">Step 2 Document (scene)</label>
+                <textarea id="doc-scene">{}</textarea>
+                <div class="doc-toolbar">
+                    <button class="btn secondary" id="save-doc-scene" disabled>Save Document</button>
+                    <div class="doc-path" id="doc-path-scene">saved_to: -</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="step-panel" data-step-panel="project">
+        <div class="card">
+            <div class="step-title">Step 2.5 - /api/scene/project <span class="method-badge regional">NEW</span></div>
+            <button class="btn accent" id="btn-project" disabled>Project 3D→2D</button>
+            <div class="result small" id="result-project">{}</div>
+            <div class="preview-wrap" id="project-canvas-wrap" style="display:none; margin-top:8px;">
+                <div class="preview-title">2D Projection Preview</div>
+                <canvas id="project-canvas" width="512" height="512"
+                    style="width:100%; max-width:512px; border-radius:6px; border:1px solid #334155; background:#000;">
+                </canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="step-panel" data-step-panel="prompt">
+        <div class="card">
+            <div class="step-title">Step 3 - /api/prompt/regional <span class="method-badge regional">NEW</span></div>
+            <button class="btn" id="btn-prompt" disabled>Build Regional Prompts</button>
+            <div class="result small" id="result-prompt">{}</div>
+            <div class="doc-editor">
+                <label for="doc-prompt">Step 3 Document (regional prompts)</label>
+                <textarea id="doc-prompt">{}</textarea>
+                <div class="doc-toolbar">
+                    <button class="btn secondary" id="save-doc-prompt" disabled>Save Document</button>
+                    <div class="doc-path" id="doc-path-prompt">saved_to: -</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="step-panel" data-step-panel="workflow">
+        <div class="card">
+            <div class="step-title">Step 4 - /api/workflow/build</div>
+            <button class="btn" id="btn-workflow" disabled>Build Workflow</button>
+            <div class="result small" id="result-workflow">{}</div>
+            <div class="doc-editor">
+                <label for="doc-workflow">Step 4 Document (workflow)</label>
+                <textarea id="doc-workflow">{}</textarea>
+                <div class="doc-toolbar">
+                    <button class="btn secondary" id="save-doc-workflow" disabled>Save Document</button>
+                    <div class="doc-path" id="doc-path-workflow">saved_to: -</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="step-panel" data-step-panel="depth">
+        <div class="step-panel-grid">
+            <div class="card">
+                <div class="step-title">Step 5 - /api/depth/render or /api/depth/upload</div>
+                <label for="depth-file">选择 depth_map.png（可选，手工上传时使用）</label>
+                <input id="depth-file" type="file" accept="image/png,image/*">
+                <button class="btn" id="btn-generate-depth" disabled style="margin-top: 10px;">Generate Depth</button>
+                <button class="btn secondary" id="btn-upload-depth" disabled style="margin-top: 10px; margin-left: 8px;">Upload Depth</button>
+                <div class="result" id="result-depth">{}</div>
+            </div>
+
+            <div class="card no-frame-card">
+                <div class="step-title">3D Image</div>
+                <div class="preview-plain" id="depth-preview-wrap" style="display:none;">
+                    <img id="depth-preview-img" alt="3d scene image preview">
+                    <div class="preview-meta sr-only" id="depth-preview-meta"></div>
+                </div>
+                <iframe
+                    id="depth-renderer-iframe"
+                    class="hidden-renderer"
+                    src="/web/threejs_depth_renderer/index.html?embedded=1"
+                    title="hidden 3d renderer"
+                ></iframe>
+            </div>
+        </div>
+    </section>
+
+    <section class="step-panel" data-step-panel="generate">
+        <div class="step-panel-grid">
+            <div class="card">
+                <div class="step-title">Step 6 - /api/generate</div>
+                <label for="timeout-input">Timeout (seconds)</label>
+                <input id="timeout-input" type="number" value="300" min="10" step="10">
+                <button class="btn" id="btn-generate" disabled style="margin-top: 10px;">Generate</button>
+                <div class="result" id="result-generate">{}</div>
+            </div>
+
+            <div class="card">
+                <div class="step-title">Output Image</div>
+                <div class="preview-wrap" id="generate-preview-wrap" style="display:none;">
+                    <img id="generate-preview-img" alt="generated result preview">
+                    <div class="preview-meta" id="generate-preview-meta"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="step-nav">
+        <button class="btn secondary" id="btn-prev-step" type="button">上一步</button>
+        <button class="btn" id="btn-next-step" type="button">下一步</button>
+    </div>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

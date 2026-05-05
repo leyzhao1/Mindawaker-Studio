@@ -1,0 +1,71 @@
+# MindAwaker 3D-Guided T2I 默认配置
+
+# 项目路径
+paths:
+  data_dir: "./data"
+  output_dir: "./data/outputs"
+  depth_dir: "./data/depth"
+  json_dir: "./data/json"
+
+# Three.js 渲染配置
+render:
+  width: 1024
+  height: 1024
+  camera_fov: 50
+  near_plane: 0.1
+  far_plane: 1000
+
+# ComfyUI 配置
+comfyui:
+  server_url: "http://127.0.0.1:8188"
+  workflow_path: "./configs/comfy_workflow.json"
+  timeout: 300
+
+  # 模型配置（从 workflow 中提取）
+  models:
+    # 如果 sd_xl_base_1.0.safetensors 报错 "clip input is invalid: None"，
+    # 说明模型文件损坏或不完整，请尝试其他模型，例如：
+    # checkpoint: "diffusion_pytorch_model.safetensors"
+    checkpoint: "sd_xl_base_1.0_0.9vae(1).safetensors"  # 主模型
+    # 注意：SDXL 模型需要 SDXL 版本的 ControlNet
+    # SD 1.5 的 ControlNet (如 control_v11f1p_sd15_depth.pth) 不兼容 SDXL
+    # 请下载 SDXL ControlNet，例如：
+    # controlnet: "diffusers_xl_depth_full.safetensors"
+    # 下载地址：https://huggingface.co/diffusers/controlnet-depth-sdxl-1.0
+    controlnet: "diffusion_pytorch_model.safetensors"  # ControlNet 模型（当前为 SD1.5 版本，需更换）
+    vae: ""  # 独立 VAE（可选）。如果 checkpoint 不包含 VAE，请指定此值
+
+  # 生成参数
+  generation:
+    width: 1024
+    height: 1024
+    steps: 30
+    cfg: 7.5
+    sampler_name: "dpmpp_2m"
+    scheduler: "karras"
+    seed: -1  # -1 表示随机
+
+  # ControlNet 参数
+  controlnet_params:
+    strength: 1.0
+    start_percent: 0
+    end_percent: 1
+
+# LLM 配置
+llm:
+  provider: "deepseek"  # 可选: deepseek, openai, anthropic, rule
+  model: "gpt-4o"
+  temperature: 0.7
+  max_tokens: 2000
+
+# 场景模板默认参数
+scene_defaults:
+  indoor_room:
+    room_size: [10, 10, 10]
+    wall_height: 5
+  street:
+    road_width: 6
+    building_distance: 15
+  bridge_river:
+    bridge_width: 8
+    river_width: 20

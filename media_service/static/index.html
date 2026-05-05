@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Service 测试界面</title>
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS (简化版) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
+</head>
+<body class="bg-gray-50">
+    <!-- Alpine.js应用根组件 -->
+    <div x-data="mediaServiceApp" x-init="init()">
+        <!-- 导航栏 -->
+        <nav class="bg-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-film text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h1 class="text-xl font-bold text-gray-900">Media Service 测试界面</h1>
+                            <p class="text-sm text-gray-500">媒体标注与检索系统</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="activeTab = 'media'" :class="{'bg-blue-100 text-blue-700': activeTab === 'media', 'text-gray-700': activeTab !== 'media'}" class="px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-folder mr-1"></i>媒体库
+                        </button>
+                        <button @click="activeTab = 'tag'" :class="{'bg-blue-100 text-blue-700': activeTab === 'tag', 'text-gray-700': activeTab !== 'media'}" class="px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-tag mr-1"></i>标注
+                        </button>
+                        <button @click="activeTab = 'search'" :class="{'bg-blue-100 text-blue-700': activeTab === 'search', 'text-gray-700': activeTab !== 'media'}" class="px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-search mr-1"></i>检索
+                        </button>
+                        <button @click="activeTab = 'config'" :class="{'bg-blue-100 text-blue-700': activeTab === 'config', 'text-gray-700': activeTab !== 'media'}" class="px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-cog mr-1"></i>配置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- 全局状态提示 -->
+            <div x-show="$store.mediaService.error" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                <div class="flex justify-between">
+                    <span x-text="$store.mediaService.error"></span>
+                    <button @click="$store.mediaService.error = null" class="text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="$store.mediaService.loading" class="mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+                <div class="flex items-center">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                    <span>处理中...</span>
+                </div>
+            </div>
+
+            <!-- 媒体库标签页 -->
+            <div x-show="activeTab === 'media'" x-data="mediaLibrary">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 左侧：目录管理和文件上传 -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white shadow rounded-lg p-4">
+                            <h2 class="text-lg font-semibold mb-4">媒体库管理</h2>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">目录路径</label>
+                                <div class="flex">
+                                    <input type="text" x-model="currentDirectory" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="输入目录路径">
+                                    <button @click="browseDirectory()" class="px-4 py-2 bg-gray-200 border border-l-0 border-gray-300 rounded-r-md hover:bg-gray-300">
+                                        <i class="fas fa-folder-open"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">默认: <span x-text="defaultMediaRoot"></span></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <button @click="loadDirectory()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mb-2">
+                                    <i class="fas fa-sync-alt mr-2"></i>加载目录
+                                </button>
+                                <button @click="openFilePicker()" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                                    <i class="fas fa-upload mr-2"></i>上传文件
+                                </button>
+                                <input type="file" x-ref="fileInput" multiple @change="handleFileUpload($event)" class="hidden">
+                            </div>
+
+                            <div class="border-t pt-4">
+                                <h3 class="text-sm font-medium text-gray-700 mb-2">统计信息</h3>
+                                <div class="text-sm text-gray-600">
+                                    <div class="flex justify-between">
+                                        <span>文件总数:</span>
+                                        <span x-text="fileList.length"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>图片:</span>
+                                        <span x-text="countFilesByType('image')"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>视频:</span>
+                                        <span x-text="countFilesByType('video')"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：文件列表 -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white shadow rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold">文件列表</h2>
+                                <div class="text-sm text-gray-500">
+                                    选中 <span x-text="selectedFiles.length"></span> 个文件
+                                </div>
+                            </div>
+
+                            <!-- 文件列表 -->
+                            <div class="overflow-auto max-h-96">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <input type="checkbox" @click="toggleSelectAll($event)" :checked="selectedFiles.length === fileList.length">
+                                            </th>
+                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文件名</th>
+                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">大小</th>
+                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <template x-for="file in fileList" :key="file.path">
+                                            <tr :class="{'bg-blue-50': isSelected(file)}">
+                                                <td class="px-3 py-2 whitespace-nowrap">
+                                                    <input type="checkbox" :checked="isSelected(file)" @change="toggleFileSelection(file)">
+                                                </td>
+                                                <td class="px-3 py-2 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <i :class="getFileIcon(file.type)" class="mr-2"></i>
+                                                        <span x-text="file.name" class="truncate max-w-xs"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-3 py-2 whitespace-nowrap">
+                                                    <span x-text="file.type === 'image' ? '图片' : '视频'" class="px-2 py-1 text-xs rounded-full" :class="file.type === 'image' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'"></span>
+                                                </td>
+                                                <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500" x-text="formatFileSize(file.size)"></td>
+                                                <td class="px-3 py-2 whitespace-nowrap text-sm">
+                                                    <button @click="previewFile(file)" class="text-blue-600 hover:text-blue-900 mr-2">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button @click="tagSingleFile(file)" class="text-green-600 hover:text-green-900">
+                                                        <i class="fas fa-tag"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- 批量操作 -->
+                            <div x-show="selectedFiles.length > 0" class="mt-4 pt-4 border-t">
+                                <h3 class="text-sm font-medium text-gray-700 mb-2">批量操作</h3>
+                                <div class="flex space-x-2">
+                                    <button @click="tagSelectedFiles()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                                        <i class="fas fa-tags mr-2"></i>批量标注
+                                    </button>
+                                    <button @click="clearSelection()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                                        <i class="fas fa-times mr-2"></i>清除选择
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 标注标签页 -->
+            <div x-show="activeTab === 'tag'" x-data="taggingPanel">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 文件级标注 -->
+                    <div class="bg-white shadow rounded-lg p-4">
+                        <h2 class="text-lg font-semibold mb-4">文件级标注</h2>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">输入目录</label>
+                            <input type="text" x-model="inputDir" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="输入要标注的目录路径">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">输出目录</label>
+                            <input type="text" x-model="outputDir" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="标注结果输出目录">
+                        </div>
+
+                        <div class="flex items-center mb-4">
+                            <input type="checkbox" x-model="overwrite" id="overwrite" class="mr-2">
+                            <label for="overwrite" class="text-sm text-gray-700">覆盖已存在的标注文件</label>
+                        </div>
+
+                        <div class="flex items-center mb-6">
+                            <input type="checkbox" x-model="recursive" id="recursive" class="mr-2">
+                            <label for="recursive" class="text-sm text-gray-700">递归扫描子目录</label>
+                        </div>
+
+                        <button @click="tagDirectory()" :disabled="isTagging || isTaggingSingleFile" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 mb-4">
+                            <i class="fas fa-play mr-2"></i>
+                            <span x-text="isTagging ? '标注中...' : '开始标注'"></span>
+                        </button>
+
+                        <div class="border-t pt-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">单文件标注</h3>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">文件路径</label>
+                                <input type="text" x-model="singleTagFilePath" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="输入单个媒体文件路径">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">输入根目录</label>
+                                <input type="text" x-model="singleTagInputRoot" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="用于生成相对路径的输入根目录">
+                            </div>
+                            <button @click="tagSingleFileByPath()" :disabled="isTaggingSingleFile || isTagging" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">
+                                <i class="fas fa-file-signature mr-2"></i>
+                                <span x-text="isTaggingSingleFile ? '单文件标注中...' : '单文件标注'"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 窗口级索引 -->
+                    <div class="bg-white shadow rounded-lg p-4">
+                        <h2 class="text-lg font-semibold mb-4">窗口级索引</h2>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">视频目录</label>
+                            <input type="text" x-model="windowInputDir" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="输入视频目录路径">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">窗口索引输出目录</label>
+                            <input type="text" x-model="windowOutputDir" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="窗口索引输出目录">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">窗口大小（秒）</label>
+                            <input type="text" x-model="windowSizes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="2.0,5.0,10.0">
+                            <p class="text-xs text-gray-500 mt-1">多个大小用逗号分隔</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">步长比例</label>
+                                <input type="number" x-model="strideRatio" step="0.1" min="0.1" max="1.0" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">采样帧率</label>
+                                <input type="number" x-model="sampleFps" step="0.1" min="0.1" max="10" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center mb-3">
+                            <input type="checkbox" x-model="windowOverwrite" id="window-overwrite" class="mr-2">
+                            <label for="window-overwrite" class="text-sm text-gray-700">覆盖已存在的标注文件</label>
+                        </div>
+
+                        <div class="flex items-center mb-4">
+                            <input type="checkbox" x-model="windowRecursive" id="window-recursive" class="mr-2">
+                            <label for="window-recursive" class="text-sm text-gray-700">递归扫描子目录</label>
+                        </div>
+
+                        <button @click="buildWindowIndex()" :disabled="isBuildingWindowIndex || isBuildingWindowSingleFile" class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-purple-300 mb-4">
+                            <i class="fas fa-film mr-2"></i>
+                            <span x-text="isBuildingWindowIndex ? '构建中...' : '构建窗口索引'"></span>
+                        </button>
+
+                        <div class="border-t pt-4">
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">单文件窗口索引</h3>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">视频文件路径</label>
+                                <input type="text" x-model="singleWindowFilePath" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="输入单个视频文件路径">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">输入根目录</label>
+                                <input type="text" x-model="singleWindowInputRoot" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="用于生成相对路径的输入根目录">
+                            </div>
+                            <button @click="buildWindowIndexForSingleFile()" :disabled="isBuildingWindowSingleFile || isBuildingWindowIndex" class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-purple-300">
+                                <i class="fas fa-file-video mr-2"></i>
+                                <span x-text="isBuildingWindowSingleFile ? '单文件构建中...' : '单文件窗口索引'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 任务历史 -->
+                <div class="mt-6 bg-white shadow rounded-lg p-4">
+                    <h2 class="text-lg font-semibold mb-4">任务历史</h2>
+                    <div class="overflow-auto max-h-64">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务类型</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">结果</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <template x-for="task in taskHistory" :key="task.id">
+                                    <tr>
+                                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500" x-text="task.timestamp"></td>
+                                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500" x-text="task.type"></td>
+                                        <td class="px-3 py-2 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full" :class="task.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" x-text="task.status === 'success' ? '成功' : '失败'"></span>
+                                        </td>
+                                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500" x-text="task.result"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 检索标签页 -->
+            <div x-show="activeTab === 'search'" x-data="searchPanel">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 检索配置 -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white shadow rounded-lg p-4">
+                            <h2 class="text-lg font-semibold mb-4">检索配置</h2>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">标注根目录</label>
+                                <input type="text" x-model="annotationRoot" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="标注文件根目录">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">检索模式</label>
+                                <select x-model="searchMode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="file_level">文件级检索</option>
+                                    <option value="window_level">窗口级检索</option>
+                                </select>
+                            </div>
+
+                            <div x-show="searchMode === 'window_level'" class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">窗口标注目录</label>
+                                <input type="text" x-model="windowAnnotationRoot" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="窗口标注目录">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">媒体类型偏好</label>
+                                <select x-model="preferMediaType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="auto">自动</option>
+                                    <option value="image">图片</option>
+                                    <option value="video">视频</option>
+                                    <option value="mixed">混合</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">返回结果数</label>
+                                <input type="number" x-model="topK" min="1" max="50" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+
+                            <button @click="search()" :disabled="isSearching" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300">
+                                <i class="fas fa-search mr-2"></i>
+                                <span x-text="isSearching ? '搜索中...' : '开始搜索'"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 检索输入和结果 -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white shadow rounded-lg p-4 mb-6">
+                            <h2 class="text-lg font-semibold mb-4">检索输入</h2>
+                            <textarea x-model="searchText" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="输入检索文本，例如：平静的图像 或 转场到城市街道"></textarea>
+                            <p class="text-xs text-gray-500 mt-2">支持多行文本进行批量检索</p>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duration（秒，可选）</label>
+                                <input type="number" x-model="durationInput" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="例如 4.5">
+                                <p class="text-xs text-gray-500 mt-1">填写后会覆盖自动时长估算</p>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duration Text（可选）</label>
+                                <textarea x-model="durationTextInput" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="用于时长估算的文本，可与检索文本不同；支持多行"></textarea>
+                                <p class="text-xs text-gray-500 mt-1">单行检索使用 duration_text，多行检索使用 duration_texts</p>
+                            </div>
+                        </div>
+
+                        <!-- 检索结果 -->
+                        <div class="bg-white shadow rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold">检索结果</h2>
+                                <div class="text-sm text-gray-500" x-text="'找到 ' + searchResults.length + ' 个结果'"></div>
+                            </div>
+
+                            <!-- 结果列表 -->
+                            <div class="space-y-4">
+                                <template x-for="(result, index) in searchResults" :key="(result.window_id || result.annotation_path || result.source_path) + '-' + index">
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 class="font-medium" x-text="result.file_name || result.source_path.split('/').pop()"></h3>
+                                                <div class="flex items-center space-x-2 mt-1">
+                                                    <span class="px-2 py-1 text-xs rounded-full" :class="result.media_type === 'image' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'" x-text="result.media_type === 'image' ? '图片' : '视频'"></span>
+                                                    <span x-show="result.source_scope === 'window'" class="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">窗口级</span>
+                                                    <span class="text-sm text-gray-500" x-text="'分数: ' + result.score.total.toFixed(3)"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex space-x-2">
+                                                <button @click="previewResult(result)" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                                                    <i class="fas fa-eye mr-1"></i>预览
+                                                </button>
+                                                <button @click="explainResult(result)" class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200">
+                                                    <i class="fas fa-info-circle mr-1"></i>解释
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-sm text-gray-600 mb-3" x-text="result.source_path"></div>
+
+                                        <div x-show="result.media_type === 'video'" class="mb-3">
+                                            <video controls preload="metadata" class="w-full rounded bg-black max-h-64">
+                                                <source :src="getResultVideoSrc(result)">
+                                                您的浏览器不支持视频播放
+                                            </video>
+                                        </div>
+
+                                        <!-- 窗口级结果信息 -->
+                                        <div x-show="result.source_scope === 'window'" class="mb-3 p-3 bg-purple-50 rounded">
+                                            <div class="flex justify-between text-sm">
+                                                <span>窗口ID: <span x-text="result.window_id"></span></span>
+                                                <span>窗口大小: <span x-text="result.window_level + '秒'"></span></span>
+                                                <span>时间: <span x-text="result.start_sec.toFixed(1) + 's - ' + result.end_sec.toFixed(1) + 's'"></span></span>
+                                            </div>
+                                            <button @click="playWindow(result)" class="mt-2 px-3 py-1 text-sm bg-purple-600 text-white rounded hover:bg-purple-700">
+                                                <i class="fas fa-play mr-1"></i>播放此窗口
+                                            </button>
+                                        </div>
+
+                                        <!-- 匹配项 -->
+                                        <div class="mb-3">
+                                            <h4 class="text-sm font-medium text-gray-700 mb-1">匹配项:</h4>
+                                            <div class="flex flex-wrap gap-1">
+                                                <template x-for="term in result.matched_terms" :key="term">
+                                                    <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">#<span x-text="term"></span></span>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <!-- 分数明细 -->
+                                        <div class="text-xs text-gray-500">
+                                            <div class="grid grid-cols-3 gap-2">
+                                                <div>关键词: <span x-text="result.score.keyword_score.toFixed(3)"></span></div>
+                                                <div>风格: <span x-text="result.score.style_score.toFixed(3)"></span></div>
+                                                <div>情感: <span x-text="result.score.emotion_score.toFixed(3)"></span></div>
+                                                <div>节奏: <span x-text="result.score.rhythm_score.toFixed(3)"></span></div>
+                                                <div>时长: <span x-text="result.score.duration_fit_score.toFixed(3)"></span></div>
+                                                <div>连贯性: <span x-text="result.score.coherence_score.toFixed(3)"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <div x-show="searchResults.length === 0 && !isSearching" class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-search text-3xl mb-2"></i>
+                                    <p>暂无搜索结果</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 配置标签页 -->
+            <div x-show="activeTab === 'config'" x-data="configPanel">
+                <div class="bg-white shadow rounded-lg p-4">
+                    <h2 class="text-lg font-semibold mb-4">系统配置</h2>
+
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 mb-3">API设置</h3>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">API基础URL</label>
+                            <input type="text" x-model="$store.mediaService.apiBaseUrl" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="http://localhost:6000">
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 mb-3">默认路径</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">默认媒体库路径</label>
+                                <input type="text" x-model="$store.mediaService.defaultMediaRoot" class="w-full px-3 py-2 border border-gray-300 rounded-md" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">默认标注路径</label>
+                                <input type="text" x-model="$store.mediaService.defaultAnnotationRoot" class="w-full px-3 py-2 border border-gray-300 rounded-md" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 mb-3">系统信息</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-3 bg-gray-50 rounded">
+                                <div class="text-sm text-gray-500">服务状态</div>
+                                <div class="font-medium" x-text="serviceStatus"></div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded">
+                                <div class="text-sm text-gray-500">API版本</div>
+                                <div class="font-medium" x-text="apiVersion"></div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded">
+                                <div class="text-sm text-gray-500">前端版本</div>
+                                <div class="font-medium">0.2.0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button @click="saveConfig()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <i class="fas fa-save mr-2"></i>保存配置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 视频播放器模态框 -->
+        <div x-show="showVideoPlayer" x-data="videoPlayer" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h3 class="text-lg font-semibold" x-text="videoTitle"></h3>
+                    <button @click="closePlayer()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-4">
+                    <!-- 视频播放器 -->
+                    <video
+                        x-ref="video"
+                        :src="videoUrl"
+                        @timeupdate="updateProgress"
+                        @loadedmetadata="onVideoLoaded"
+                        controls
+                        class="w-full rounded"
+                    >
+                        您的浏览器不支持视频标签
+                    </video>
+
+                    <!-- 自定义控制栏 -->
+                    <div class="mt-4 p-4 bg-gray-100 rounded">
+                        <div class="flex items-center space-x-4 mb-3">
+                            <button @click="togglePlay()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'" class="mr-2"></i>
+                                <span x-text="isPlaying ? '暂停' : '播放'"></span>
+                            </button>
+                            <div class="flex-grow">
+                                <input
+                                    type="range"
+                                    x-model="currentTime"
+                                    :max="duration"
+                                    @input="seekToTime($event.target.value)"
+                                    class="w-full"
+                                >
+                            </div>
+                            <div class="text-sm text-gray-700">
+                                <span x-text="formatTime(currentTime)"></span> /
+                                <span x-text="formatTime(duration)"></span>
+                            </div>
+                        </div>
+
+                        <!-- 窗口标记 -->
+                        <div x-show="activeWindows.length > 0" class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">窗口标记</h4>
+                            <div class="relative h-6 bg-gray-200 rounded overflow-hidden">
+                                <template x-for="window in activeWindows" :key="window.window_id">
+                                    <div
+                                        class="absolute h-full bg-purple-500 opacity-70 hover:opacity-100 cursor-pointer"
+                                        :style="{ left: (window.start_sec / duration * 100) + '%', width: ((window.end_sec - window.start_sec) / duration * 100) + '%' }"
+                                        @click="playWindow(window)"
+                                        :title="`${window.start_sec.toFixed(1)}s-${window.end_sec.toFixed(1)}s`"
+                                    >
+                                        <div class="absolute inset-0 flex items-center justify-center text-xs text-white font-medium" x-text="window.window_level + 's'"></div>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0s</span>
+                                <span x-text="formatTime(duration)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t">
+                    <div class="flex justify-end space-x-2">
+                        <button @click="closePlayer()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 详情模态框 -->
+        <div x-show="showDetailModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h3 class="text-lg font-semibold">标注详情</h3>
+                    <button @click="showDetailModal = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-4 overflow-auto max-h-[70vh]">
+                    <div x-html="detailContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript文件 -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

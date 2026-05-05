@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data and outputs (keep structure but ignore content)
+data/depth/*.png
+data/depth/*.jpg
+data/outputs/*.png
+data/outputs/*.jpg
+data/json/*.json
+!data/depth/.gitkeep
+!data/outputs/.gitkeep
+!data/json/.gitkeep
+!data/inputs/.gitkeep
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data cache and outputs (all generated content)
+data/cache/
+data/outputs/
+test_outputs/
+
+# Project tracker reports
+.VSCodeCounter/
+
+# Root-level test images
+test_depth_*.png
+
+# API keys and secrets
+.env
+.env.local
+*.key

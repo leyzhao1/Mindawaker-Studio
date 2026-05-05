@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.log
+
+# Window index cache (generated)
+windowing/*.json
+!windowing/schema.py
+
+# Tests cache
+tests/__pycache__/

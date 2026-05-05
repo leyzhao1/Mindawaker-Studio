@@ -1,0 +1,20 @@
+[
+  {
+    "character_id": "lucy_001",
+    "name": "Lucy",
+    "object_type": "child",
+    "key_features": [
+      "golden hair",
+      "blue eyes",
+      "red dress"
+    ],
+    "description": "一个金色长发、蓝眼睛的小女孩，穿着红色连衣裙",
+    "is_main_character": true,
+    "match_keywords": [
+      "lucy",
+      "金色长发",
+      "金发",
+      "蓝眼睛"
+    ]
+  }
+]

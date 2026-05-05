@@ -82,5 +82,10 @@ app/image_engine/images/
 # VSCode Counter reports
 .VSCodeCounter/
 
+# Root-level test outputs
+/canvas.png
+/canvas2.png
+/canvas3.png
+
 # Claude Code
 .claude/
